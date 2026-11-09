@@ -89,7 +89,8 @@ with tab_single:
 
     with st.form("predict_form"):
         st.markdown("**Hạn mức tín dụng**")
-        limit_bal = st.number_input("LIMIT_BAL (NT$, phải > 0)", min_value=1, value=int(preset["LIMIT_BAL"]), step=1000)
+        limit_bal = st.number_input("LIMIT_BAL (NT$, phải > 0)", min_value=1, value=int(preset["LIMIT_BAL"]), step=1000,
+                                     key=f"single_{sample_name}_LIMIT_BAL")
 
         st.markdown("**Lịch sử trả nợ 6 kỳ gần nhất (PAY_0 = gần nhất)**")
         pay_cols = st.columns(6)
@@ -97,19 +98,19 @@ with tab_single:
         for col, field in zip(pay_cols, PAY_FIELDS):
             default_idx = list(PAY_OPTIONS.keys()).index(preset[field])
             pay_values[field] = col.selectbox(field, list(PAY_OPTIONS.keys()), index=default_idx,
-                                               format_func=lambda v: PAY_OPTIONS[v], key=f"single_{field}")
+                                               format_func=lambda v: PAY_OPTIONS[v], key=f"single_{sample_name}_{field}")
 
         st.markdown("**Dư nợ sao kê 6 kỳ (BILL_AMT, có thể âm)**")
         bill_cols = st.columns(6)
         bill_values = {}
         for col, field in zip(bill_cols, BILL_FIELDS):
-            bill_values[field] = col.number_input(field, value=int(preset[field]), step=100, key=f"single_{field}")
+            bill_values[field] = col.number_input(field, value=int(preset[field]), step=100, key=f"single_{sample_name}_{field}")
 
         st.markdown("**Số tiền đã trả 6 kỳ (PAY_AMT, ≥ 0)**")
         amt_cols = st.columns(6)
         amt_values = {}
         for col, field in zip(amt_cols, AMT_FIELDS):
-            amt_values[field] = col.number_input(field, min_value=0, value=int(preset[field]), step=100, key=f"single_{field}")
+            amt_values[field] = col.number_input(field, min_value=0, value=int(preset[field]), step=100, key=f"single_{sample_name}_{field}")
 
         submitted = st.form_submit_button("Dự đoán", type="primary")
 
