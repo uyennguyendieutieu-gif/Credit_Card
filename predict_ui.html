@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CreditAI Scoring</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#eef1ee; --surface:#ffffff; --surface-alt:#e4e9e3;
+    --ink:#132725; --ink-soft:#49605c;
+    --accent:#0f6e63; --accent-soft:#d9ebe6;
+    --line:#cfd8cd; --mono-bg:#e6ebe3;
+    --green:#1f7a3d; --green-soft:#e1f0e3;
+    --yellow:#9a7d12; --yellow-soft:#f6edc9;
+    --red:#a3342a; --red-soft:#f6dbd7;
+    --shadow: 0 1px 2px rgba(19,39,37,.06), 0 8px 24px -16px rgba(19,39,37,.18);
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--ink); margin:0;
+    font-family:'IBM Plex Sans','Segoe UI',sans-serif; line-height:1.5;
+    padding-inline:20px;
+  }
+  .page{ max-width:1180px; margin:0 auto; padding-block:36px 72px; }
+  h1,h2,h3{ font-family:'Fraunces',Georgia,serif; font-weight:600; margin:0; }
+  code,.mono{ font-family:'IBM Plex Mono',ui-monospace,monospace; }
+
+  header{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:8px; }
+  h1{ font-size:clamp(1.5rem,3.4vw,2rem); }
+  .subtitle{ color:var(--ink-soft); font-size:.92rem; max-width:52ch; margin-top:6px; }
+
+  .sample-picker{ display:flex; align-items:center; gap:8px; }
+  select, input[type=number], input[type=file]{
+    font-family:'IBM Plex Sans'; font-size:.88rem; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    padding:8px 10px; width:100%;
+  }
+  select:focus, input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  label{ font-size:.78rem; color:var(--ink-soft); display:block; margin-bottom:4px; }
+
+  .layout{ display:grid; grid-template-columns:1.3fr 1fr; gap:24px; margin-top:28px; align-items:start; }
+  @media (max-width:860px){ .layout{grid-template-columns:1fr;} }
+
+  .panel{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px 24px; box-shadow:var(--shadow); }
+  .panel + .panel{ margin-top:20px; }
+  .panel h2{ font-size:1.05rem; }
+  .panel .hint{ font-size:.78rem; color:var(--ink-soft); margin-top:4px; }
+
+  .field-group{ margin-top:18px; }
+  .field-group-label{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:10px; }
+  .grid-1{ display:grid; grid-template-columns:1fr; gap:12px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .grid-6{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+  @media (max-width:640px){ .grid-6{grid-template-columns:repeat(3,1fr);} .grid-3{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:420px){ .grid-6{grid-template-columns:repeat(2,1fr);} }
+
+  .actions{ display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  button{
+    font-family:'IBM Plex Sans'; font-weight:600; font-size:.88rem;
+    border:none; border-radius:9px; padding:11px 20px; cursor:pointer;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{ background:var(--surface-alt); color:var(--ink); }
+  .btn-ghost:hover{ background:var(--line); }
+
+  /* ---- result panel ---- */
+  .result-empty{ color:var(--ink-soft); font-size:.9rem; padding:28px 0; text-align:center; }
+  .result-score{ text-align:center; padding:10px 0 18px; }
+  .result-score .num{ font-family:'Fraunces',serif; font-size:3rem; font-weight:600; line-height:1; }
+  .result-score .lab{ font-size:.78rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; margin-top:6px; }
+  .score-bar{ height:10px; border-radius:999px; background:linear-gradient(90deg,#a3342a,#9a7d12,#1f7a3d); margin-top:10px; position:relative; }
+  .score-bar .marker{ position:absolute; top:-4px; width:3px; height:18px; background:var(--ink); border-radius:2px; transform:translateX(-50%); }
+  .score-range{ display:flex; justify-content:space-between; font-size:.7rem; color:var(--ink-soft); margin-top:4px; }
+
+  .pill{ display:inline-flex; align-items:center; gap:6px; font-size:.82rem; font-weight:600; padding:5px 14px; border-radius:999px; }
+  .pill.Green{ background:var(--green-soft); color:var(--green); }
+  .pill.Yellow{ background:var(--yellow-soft); color:var(--yellow); }
+  .pill.Red{ background:var(--red-soft); color:var(--red); }
+  .pill-row{ display:flex; justify-content:center; margin-top:6px; }
+
+  .kv-list{ margin-top:18px; display:flex; flex-direction:column; gap:10px; }
+  .kv-list .row{ display:flex; justify-content:space-between; font-size:.86rem; border-top:1px solid var(--line); padding-top:10px; }
+  .kv-list .row .k{ color:var(--ink-soft); }
+  .kv-list .row .v{ font-weight:600; font-variant-numeric:tabular-nums; }
+
+  .error-box{ margin-top:14px; background:var(--red-soft); color:var(--red); border-radius:10px; padding:12px 14px; font-size:.85rem; display:none; }
+  .error-box.show{ display:block; }
+
+  /* ---- batch table ---- */
+  .table-wrap{ overflow-x:auto; margin-top:16px; border:1px solid var(--line); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; min-width:560px; background:var(--surface); }
+  thead th{ text-align:left; font-family:'IBM Plex Mono',monospace; font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); background:var(--surface-alt); padding:9px 12px; }
+  tbody td{ padding:9px 12px; font-size:.84rem; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+
+  .spinner{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  [hidden]{ display:none !important; }
+
+  footer{ margin-top:48px; padding-top:18px; border-top:1px solid var(--line); font-size:.78rem; color:var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div>
+      <div class="eyebrow">CreditAI &middot; Credit Scoring Tool</div>
+      <h1>Dự đoán rủi ro vỡ nợ khách hàng</h1>
+      <p class="subtitle">Nhập 19 thông tin tài chính gốc, hệ thống tự động tính thêm đặc trưng và chấm điểm bằng mô hình Hist Gradient Boosting đã huấn luyện.</p>
+    </div>
+    <div class="sample-picker">
+      <div style="min-width:220px;">
+        <label for="sample-select">Chọn khách hàng mẫu</label>
+        <select id="sample-select">
+          <option value="">— Tự nhập thông tin —</option>
+          <option value="DEMO-001">DEMO-001 (an toàn)</option>
+          <option value="DEMO-002">DEMO-002 (trung bình)</option>
+          <option value="DEMO-003">DEMO-003 (rủi ro cao)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- ================= FORM ================= -->
+    <div class="panel">
+      <h2>Thông tin khách hàng</h2>
+      <p class="hint">Đơn vị tiền tệ: NT$ (đô la Đài Loan) — không tự quy đổi.</p>
+
+      <form id="predict-form">
+        <div class="field-group">
+          <div class="field-group-label">Hạn mức tín dụng</div>
+          <div class="grid-1">
+            <div>
+              <label for="LIMIT_BAL">LIMIT_BAL (NT$, phải &gt; 0)</label>
+              <input type="number" id="LIMIT_BAL" name="LIMIT_BAL" min="1" step="1" value="110000" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-label">Lịch sử trả nợ 6 kỳ gần nhất (PAY_0 = gần nhất)</div>
+          <div class="grid-6" id="pay-fields"></div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-label">Dư nợ sao kê 6 kỳ (BILL_AMT, có thể âm)</div>
+          <div class="grid-3" id="bill-fields"></div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-label">Số tiền đã trả 6 kỳ (PAY_AMT, &ge; 0)</div>
+          <div class="grid-3" id="amt-fields"></div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="predict-btn">Dự đoán</button>
+          <button type="button" class="btn-ghost" id="reset-btn">Đặt lại</button>
+        </div>
+      </form>
+
+      <div class="error-box" id="form-error"></div>
+    </div>
+
+    <!-- ================= RESULT ================= -->
+    <div class="panel" id="result-panel">
+      <h2>Kết quả dự đoán</h2>
+      <div class="result-empty" id="result-empty">Nhập thông tin và bấm "Dự đoán" để xem kết quả.</div>
+
+      <div id="result-body" hidden>
+        <div class="result-score">
+          <div class="num" id="score-num">—</div>
+          <div class="lab">Credit Score (300–850)</div>
+          <div class="score-bar"><div class="marker" id="score-marker" style="left:50%"></div></div>
+          <div class="score-range"><span>300</span><span>850</span></div>
+        </div>
+
+        <div class="pill-row"><span class="pill" id="risk-pill">—</span></div>
+
+        <div class="kv-list">
+          <div class="row"><span class="k">Xác suất vỡ nợ</span><span class="v" id="prob-val">—</span></div>
+          <div class="row"><span class="k">Ngưỡng quyết định</span><span class="v">0.25</span></div>
+          <div class="row"><span class="k">Dự đoán nhãn</span><span class="v" id="pred-val">—</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= BATCH ================= -->
+  <div class="panel" style="margin-top:24px;">
+    <h2>Dự đoán hàng loạt từ CSV</h2>
+    <p class="hint">File CSV cần các cột: Customer_ID (tuỳ chọn), LIMIT_BAL, PAY_0, PAY_2–PAY_6, BILL_AMT1–6, PAY_AMT1–6.</p>
+    <div class="actions" style="margin-top:14px;">
+      <input type="file" id="csv-input" accept=".csv" style="max-width:320px;">
+      <button type="button" class="btn-primary" id="batch-btn">Dự đoán hàng loạt</button>
+      <button type="button" class="btn-ghost" id="download-btn" hidden>Tải CSV kết quả</button>
+    </div>
+    <div class="error-box" id="batch-error"></div>
+    <div class="table-wrap" id="batch-table-wrap" hidden>
+      <table id="batch-table"></table>
+    </div>
+  </div>
+
+  <footer>CreditAI — mô hình học thuật dựa trên dữ liệu UCI Default of Credit Card Clients. Không dùng để tự động phê duyệt tín dụng trong thực tế.</footer>
+</div>
+
+<script>
+const PAY_FIELDS = ["PAY_0","PAY_2","PAY_3","PAY_4","PAY_5","PAY_6"];
+const BILL_FIELDS = ["BILL_AMT1","BILL_AMT2","BILL_AMT3","BILL_AMT4","BILL_AMT5","BILL_AMT6"];
+const AMT_FIELDS = ["PAY_AMT1","PAY_AMT2","PAY_AMT3","PAY_AMT4","PAY_AMT5","PAY_AMT6"];
+const ALL_FIELDS = ["LIMIT_BAL", ...PAY_FIELDS, ...BILL_FIELDS, ...AMT_FIELDS];
+
+const PAY_OPTIONS = [
+  [-2, "-2 · Không phát sinh"],
+  [-1, "-1 · Trả đúng hạn"],
+  [0, "0 · Xoay vòng, trả tối thiểu"],
+  [1, "1 · Trễ 1 tháng"],
+  [2, "2 · Trễ 2 tháng"],
+  [3, "3 · Trễ 3 tháng"],
+  [4, "4 · Trễ 4 tháng"],
+  [5, "5 · Trễ 5 tháng"],
+  [6, "6 · Trễ 6 tháng"],
+  [7, "7 · Trễ 7 tháng"],
+  [8, "8 · Trễ 8 tháng"],
+];
+
+const SAMPLES = {
+  "DEMO-001": {LIMIT_BAL:110000, PAY_0:0, PAY_2:0, PAY_3:0, PAY_4:0, PAY_5:0, PAY_6:0,
+    BILL_AMT1:79646, BILL_AMT2:110818, BILL_AMT3:107558, BILL_AMT4:80437, BILL_AMT5:79727, BILL_AMT6:81001,
+    PAY_AMT1:50000, PAY_AMT2:3500, PAY_AMT3:10000, PAY_AMT4:3000, PAY_AMT5:3000, PAY_AMT6:3000},
+  "DEMO-002": {LIMIT_BAL:360000, PAY_0:1, PAY_2:-2, PAY_3:-2, PAY_4:-1, PAY_5:0, PAY_6:0,
+    BILL_AMT1:0, BILL_AMT2:1680, BILL_AMT3:0, BILL_AMT4:5950, BILL_AMT5:6352, BILL_AMT6:6563,
+    PAY_AMT1:1680, PAY_AMT2:0, PAY_AMT3:5950, PAY_AMT4:500, PAY_AMT5:317, PAY_AMT6:1150},
+  "DEMO-003": {LIMIT_BAL:50000, PAY_0:1, PAY_2:2, PAY_3:2, PAY_4:0, PAY_5:0, PAY_6:0,
+    BILL_AMT1:17479, BILL_AMT2:18195, BILL_AMT3:17614, BILL_AMT4:18630, BILL_AMT5:19000, BILL_AMT6:19421,
+    PAY_AMT1:1300, PAY_AMT2:0, PAY_AMT3:1310, PAY_AMT4:680, PAY_AMT5:727, PAY_AMT6:6000},
+};
+
+function buildPaySelect(name){
+  const opts = PAY_OPTIONS.map(([v,l]) => `<option value="${v}">${l}</option>`).join("");
+  return `<div><label for="${name}">${name}</label><select id="${name}" name="${name}">${opts}</select></div>`;
+}
+function buildNumberField(name, min){
+  return `<div><label for="${name}">${name}</label><input type="number" id="${name}" name="${name}" ${min!==undefined ? `min="${min}"` : ""} step="1" value="0"></div>`;
+}
+
+document.getElementById("pay-fields").innerHTML = PAY_FIELDS.map(buildPaySelect).join("");
+document.getElementById("bill-fields").innerHTML = BILL_FIELDS.map(f => buildNumberField(f)).join("");
+document.getElementById("amt-fields").innerHTML = AMT_FIELDS.map(f => buildNumberField(f, 0)).join("");
+
+function setFormValues(values){
+  for (const field of ALL_FIELDS){
+    const el = document.getElementById(field);
+    if (el && values[field] !== undefined) el.value = values[field];
+  }
+}
+
+document.getElementById("sample-select").addEventListener("change", (e) => {
+  const key = e.target.value;
+  if (key && SAMPLES[key]) setFormValues(SAMPLES[key]);
+});
+
+document.getElementById("reset-btn").addEventListener("click", () => {
+  document.getElementById("sample-select").value = "";
+  setFormValues(SAMPLES["DEMO-001"]);
+  document.getElementById("result-empty").hidden = false;
+  document.getElementById("result-body").hidden = true;
+  document.getElementById("form-error").classList.remove("show");
+});
+
+// init mac dinh voi DEMO-001
+setFormValues(SAMPLES["DEMO-001"]);
+
+function readFormCustomer(){
+  const customer = {};
+  for (const field of ALL_FIELDS){
+    const el = document.getElementById(field);
+    const num = Number(el.value);
+    if (el.value === "" || Number.isNaN(num)) {
+      throw new Error(`Trường ${field} không hợp lệ.`);
+    }
+    customer[field] = num;
+  }
+  if (customer.LIMIT_BAL <= 0) throw new Error("LIMIT_BAL phải lớn hơn 0.");
+  return customer;
+}
+
+function showError(boxId, message){
+  const box = document.getElementById(boxId);
+  box.textContent = message;
+  box.classList.add("show");
+}
+function clearError(boxId){
+  document.getElementById(boxId).classList.remove("show");
+}
+
+function renderResult(result){
+  document.getElementById("result-empty").hidden = true;
+  document.getElementById("result-body").hidden = false;
+
+  document.getElementById("score-num").textContent = result.credit_score;
+  const pct = Math.max(0, Math.min(100, (result.credit_score - 300) / (850 - 300) * 100));
+  document.getElementById("score-marker").style.left = pct + "%";
+
+  const pill = document.getElementById("risk-pill");
+  pill.textContent = result.risk_group;
+  pill.className = "pill " + result.risk_group;
+
+  document.getElementById("prob-val").textContent = (result.default_probability * 100).toFixed(2) + "%";
+  document.getElementById("pred-val").textContent = result.predicted_default === 1 ? "Có nguy cơ vỡ nợ" : "Không có nguy cơ vỡ nợ";
+}
+
+document.getElementById("predict-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  clearError("form-error");
+  const btn = document.getElementById("predict-btn");
+  const originalLabel = btn.textContent;
+  try {
+    const customer = readFormCustomer();
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Đang chấm điểm...';
+    const resp = await fetch("/api/predict", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(customer),
+    });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || "Lỗi không xác định.");
+    renderResult(data.result);
+  } catch (err) {
+    showError("form-error", err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+});
+
+// ================= BATCH CSV =================
+let lastBatchResults = null;
+
+function stripQuotes(cell){
+  cell = cell.trim();
+  if (cell.length >= 2 && cell.startsWith('"') && cell.endsWith('"')) {
+    cell = cell.slice(1, -1).replace(/""/g, '"');
+  }
+  return cell.trim();
+}
+
+function splitCsvLine(line, delimiter){
+  return line.split(delimiter).map(stripQuotes);
+}
+
+function parseCsv(text){
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // bo BOM neu co
+  const lines = text.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (lines.length < 2) throw new Error("File CSV cần ít nhất 1 dòng dữ liệu.");
+
+  // Tu nhan dien dau phan cach: Excel tieng Viet thuong luu CSV bang ";"
+  const headerLine = lines[0];
+  const delimiter = (headerLine.split(";").length > headerLine.split(",").length) ? ";" : ",";
+
+  const headers = splitCsvLine(headerLine, delimiter);
+  const rows = lines.slice(1).map(line => {
+    const cells = splitCsvLine(line, delimiter);
+    const row = {};
+    headers.forEach((h, i) => {
+      if (h === "Customer_ID") { row[h] = cells[i]; }
+      else { row[h] = cells[i] === "" || cells[i] === undefined ? null : Number(cells[i]); }
+    });
+    return row;
+  });
+  const missing = ALL_FIELDS.filter(f => !headers.includes(f));
+  if (missing.length) throw new Error("File CSV thiếu cột: " + missing.join(", ") + " (đã nhận diện dấu phân cách \"" + delimiter + "\" — kiểm tra lại dòng tiêu đề của file).");
+  return rows;
+}
+
+document.getElementById("batch-btn").addEventListener("click", async () => {
+  clearError("batch-error");
+  const fileInput = document.getElementById("csv-input");
+  const btn = document.getElementById("batch-btn");
+  if (!fileInput.files.length) { showError("batch-error", "Chọn một file CSV trước đã."); return; }
+
+  try {
+    const text = await fileInput.files[0].text();
+    const rows = parseCsv(text);
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Đang dự đoán...';
+
+    const resp = await fetch("/api/predict_batch", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({rows}),
+    });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || "Lỗi không xác định.");
+
+    lastBatchResults = data.results;
+    renderBatchTable(data.results);
+    document.getElementById("download-btn").hidden = false;
+  } catch (err) {
+    showError("batch-error", err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Dự đoán hàng loạt";
+  }
+});
+
+function renderBatchTable(results){
+  const wrap = document.getElementById("batch-table-wrap");
+  const table = document.getElementById("batch-table");
+  wrap.hidden = false;
+
+  const head = `<thead><tr><th>Customer_ID</th><th>Default Probability</th><th>Credit Score</th><th>Risk Group</th><th>Predicted Default</th></tr></thead>`;
+  const body = results.map(r => `<tr>
+      <td>${r.Customer_ID ?? ""}</td>
+      <td>${(r.Default_Probability * 100).toFixed(2)}%</td>
+      <td>${r.Credit_Score}</td>
+      <td><span class="pill ${r.Risk_Group}">${r.Risk_Group}</span></td>
+      <td>${r.Predicted_Default === 1 ? "Có nguy cơ" : "An toàn"}</td>
+    </tr>`).join("");
+  table.innerHTML = head + "<tbody>" + body + "</tbody>";
+}
+
+document.getElementById("download-btn").addEventListener("click", () => {
+  if (!lastBatchResults) return;
+  const header = "Customer_ID,Default_Probability,Credit_Score,Risk_Group,Predicted_Default";
+  const lines = lastBatchResults.map(r => [r.Customer_ID ?? "", r.Default_Probability, r.Credit_Score, r.Risk_Group, r.Predicted_Default].join(","));
+  const csv = [header, ...lines].join("\n");
+  const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "prediction_results.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>

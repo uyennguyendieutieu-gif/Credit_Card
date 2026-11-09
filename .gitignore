@@ -1,0 +1,22 @@
+# Du lieu goc va ket qua trung gian - khong can cho app predict chay
+UCI_Credit_Card.csv
+model.joblib
+feature_names.joblib
+test_predictions.csv
+outputs/
+official_outputs/
+code_tu/
+
+# File thu nghiem rieng
+eda_train_pipeline.py
+official_test_evaluation.py
+preprocessing_report.html
+test_evaluation_report.html
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Streamlit
+.streamlit/secrets.toml
