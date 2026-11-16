@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CreditAI Báo cáo</title>
+<style>
+  body{ font-family:'Segoe UI',sans-serif; background:#eef1ee; color:#132725; margin:0; padding:40px 20px; }
+  .wrap{ max-width:640px; margin:0 auto; }
+  h1{ font-size:1.6rem; margin-bottom:6px; }
+  p.sub{ color:#49605c; margin-top:0; }
+  .card{ display:block; background:#fff; border:1px solid #cfd8cd; border-radius:12px;
+         padding:20px 22px; margin-top:16px; text-decoration:none; color:#132725; }
+  .card:hover{ border-color:#0f6e63; }
+  .card .tag{ font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:#0f6e63; font-weight:600; }
+  .card h2{ font-size:1.1rem; margin:6px 0 4px; }
+  .card p{ margin:0; color:#49605c; font-size:.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>CreditAI — Báo cáo kỹ thuật</h1>
+  <p class="sub">Hệ thống chấm điểm rủi ro vỡ nợ khách hàng vay tiêu dùng.</p>
+
+  <a class="card" href="preprocessing.html">
+    <div class="tag">Báo cáo 1</div>
+    <h2>Tiền xử lý dữ liệu</h2>
+    <p>Chia Train/Validation/Test, chọn đặc trưng, feature engineering (19 → 28 đặc trưng), kiểm tra chất lượng, chuẩn hóa.</p>
+  </a>
+
+  <a class="card" href="model-evaluation.html">
+    <div class="tag">Báo cáo 2</div>
+    <h2>Đánh giá mô hình trên tập Test</h2>
+    <p>AUC/KS/Precision/Recall, so sánh 3 mô hình, ablation 19 vs 28 đặc trưng, ROC curve, feature importance, EDA, kiểm chứng 3 nhóm màu rủi ro.</p>
+  </a>
+
+  <a class="card" href="https://creditcard-demo.streamlit.app/">
+    <div class="tag">Web demo</div>
+    <h2>Dự đoán trực tiếp</h2>
+    <p>Nhập thông tin khách hàng hoặc tải CSV để chấm điểm rủi ro trực tiếp trên trình duyệt.</p>
+  </a>
+</div>
+</body>
+</html>
