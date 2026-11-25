@@ -29,7 +29,9 @@ tự thiết kế, không phải điểm tín dụng chính thức.
 
 ---
 
-## 2. Project Files
+## 2. Project Structure
+
+Các file production (dùng để chạy/deploy) nằm ở thư mục gốc:
 
 credit_default_hgb.joblib
     Mô hình AI đã huấn luyện.
@@ -43,14 +45,40 @@ feature_engineering.py
 predict.py
     Hàm dự đoán cho website.
 
-sample_customers.csv
-    Ba hồ sơ khách hàng mẫu.
-
-sample_expected_results.csv
-    Kết quả dự đoán tham chiếu cho hồ sơ mẫu.
+streamlit_app.py
+    Web app dự đoán (deploy trên Streamlit Community Cloud).
 
 requirements.txt
     Danh sách thư viện Python cần cài đặt.
+
+docs/
+    Báo cáo HTML xuất bản qua GitHub Pages.
+
+Các thư mục hỗ trợ khác:
+
+samples/
+    sample_customers.csv (3 hồ sơ mẫu), sample_expected_results.csv (kết quả tham chiếu).
+
+local_demo/
+    Web demo chạy local (server.py + predict_ui.html), không qua Streamlit.
+
+notebooks/
+    5 notebook gốc: 01_EDA, 02_Preprocessing, 03_ModelTraining, 04_ModelEvaluation, 05_CreditScoring.
+
+evaluation/
+    Script tái tạo và chấm điểm trên tập Test chính thức (official_test_evaluation.py) + kết quả (official_outputs/).
+
+reports/
+    2 báo cáo HTML đầy đủ (tiền xử lý dữ liệu, đánh giá mô hình trên Test) — bản gốc trước khi xuất bản qua docs/.
+
+exploratory/
+    Pipeline thử nghiệm nhanh riêng (bộ đặc trưng khác, không phải model chính thức) — chỉ tham khảo.
+
+data/
+    UCI_Credit_Card.csv — dữ liệu gốc (không commit lên git).
+
+planning/
+    video_script.md — kịch bản quay video giải thích code.
 
 ---
 
@@ -129,7 +157,7 @@ Example:
     import pandas as pd
     from predict import predict_customer
 
-    sample = pd.read_csv("sample_customers.csv")
+    sample = pd.read_csv("samples/sample_customers.csv")
 
     customer = sample.iloc[0].drop(
         labels=["Customer_ID"]
@@ -160,7 +188,7 @@ Example:
     import pandas as pd
     from predict import predict_batch
 
-    data = pd.read_csv("sample_customers.csv")
+    data = pd.read_csv("samples/sample_customers.csv")
 
     customer_ids = data["Customer_ID"].copy()
 

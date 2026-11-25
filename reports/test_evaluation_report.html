@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CreditAI Đánh giá Test</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#eef1ee; --surface:#ffffff; --surface-alt:#e4e9e3;
+    --ink:#132725; --ink-soft:#49605c;
+    --accent:#0f6e63; --accent-soft:#d9ebe6;
+    --gold:#8f6d20; --gold-soft:#f1e7cd;
+    --clay:#95392f; --clay-soft:#f2ddd7;
+    --green:#1f7a3d; --green-soft:#e1f0e3;
+    --yellow:#9a7d12; --yellow-soft:#f6edc9;
+    --red:#a3342a; --red-soft:#f6dbd7;
+    --line:#cfd8cd; --mono-bg:#e6ebe3;
+    --shadow: 0 1px 2px rgba(19,39,37,.06), 0 8px 24px -16px rgba(19,39,37,.18);
+    color-scheme: light;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Sans','Segoe UI',sans-serif;
+    line-height:1.6; margin:0; padding-inline:20px;
+  }
+  .page{ max-width:900px; margin:0 auto; padding-block:48px 80px; }
+  h1,h2,h3{ font-family:'Fraunces',Georgia,serif; font-weight:600; color:var(--ink); margin:0; text-wrap:balance; }
+  code,.mono{ font-family:'IBM Plex Mono',ui-monospace,monospace; }
+  img{max-width:100%; display:block;}
+
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:10px; }
+  h1{ font-size:clamp(1.8rem,4.2vw,2.5rem); letter-spacing:-.01em; }
+  .subtitle{ color:var(--ink-soft); font-size:1.02rem; max-width:62ch; margin-top:12px; }
+  .source-line{ margin-top:16px; font-size:.84rem; color:var(--ink-soft); }
+  .source-line code{ background:var(--mono-bg); padding:2px 7px; border-radius:5px; }
+
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-top:28px; }
+  .stat{ background:var(--surface); padding:18px 16px; display:flex; flex-direction:column; gap:4px; }
+  .stat .num{ font-family:'Fraunces',serif; font-size:1.7rem; font-variant-numeric:tabular-nums; font-weight:600; }
+  .stat .label{ font-size:.76rem; color:var(--ink-soft); }
+  @media (max-width:620px){ .stats{grid-template-columns:repeat(2,1fr);} }
+
+  section{ margin-top:56px; padding-top:28px; border-top:1px solid var(--line); }
+  .step-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:6px; }
+  .step-num{ font-family:'IBM Plex Mono',monospace; font-size:.8rem; color:var(--accent); background:var(--accent-soft); border-radius:999px; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; flex:none; font-weight:600; }
+  h2{ font-size:1.32rem; }
+  .lede{ color:var(--ink-soft); margin-top:10px; max-width:66ch; }
+
+  .table-wrap{ overflow-x:auto; margin-top:20px; border:1px solid var(--line); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; min-width:520px; background:var(--surface); }
+  thead th{ text-align:left; font-family:'IBM Plex Mono',monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); background:var(--surface-alt); padding:10px 14px; }
+  tbody td{ padding:11px 14px; font-size:.87rem; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  tbody td:first-child{ font-weight:600; font-variant-numeric:normal; white-space:nowrap; }
+  tbody tr.highlight{ background:var(--accent-soft); }
+  tbody tr.highlight td:first-child{ color:var(--accent); }
+
+  .panel{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:20px 22px; box-shadow:var(--shadow); margin-top:20px; }
+  .kv-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:6px; }
+  @media (max-width:620px){ .kv-row{grid-template-columns:repeat(2,1fr);} }
+  .kv{ display:flex; flex-direction:column; gap:3px; }
+  .kv .v{ font-family:'Fraunces',serif; font-size:1.5rem; font-weight:600; }
+  .kv .k{ font-size:.76rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
+
+  .cm-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px; max-width:420px; }
+  .cm-cell{ border-radius:10px; padding:14px; text-align:center; }
+  .cm-cell .big{ font-family:'Fraunces',serif; font-size:1.5rem; font-weight:600; }
+  .cm-cell .lab{ font-size:.74rem; color:var(--ink-soft); margin-top:2px; }
+  .cm-tn{ background:var(--green-soft); }
+  .cm-tp{ background:var(--green-soft); }
+  .cm-fp{ background:var(--yellow-soft); }
+  .cm-fn{ background:var(--red-soft); }
+
+  .fig{ margin-top:22px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--surface); box-shadow:var(--shadow); }
+  .fig img{ width:100%; }
+  .fig-cap{ padding:10px 16px; font-size:.82rem; color:var(--ink-soft); border-top:1px solid var(--line); }
+
+  .fig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; }
+  @media (max-width:700px){ .fig-grid{grid-template-columns:1fr;} }
+
+  .risk-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:22px; }
+  @media (max-width:640px){ .risk-row{grid-template-columns:1fr;} }
+  .risk-card{ border-radius:12px; padding:20px; border:1px solid var(--line); }
+  .risk-card .pct{ font-family:'Fraunces',serif; font-size:2.1rem; font-weight:600; }
+  .risk-card .n{ font-size:.82rem; margin-top:6px; }
+  .risk-card .bar{ height:8px; border-radius:999px; background:rgba(0,0,0,.08); margin-top:12px; overflow:hidden; }
+  .risk-card .bar-fill{ height:100%; border-radius:999px; }
+  .risk-card.green{ background:var(--green-soft); }
+  .risk-card.yellow{ background:var(--yellow-soft); }
+  .risk-card.red{ background:var(--red-soft); }
+  .risk-card.green .pct, .risk-card.green .bar-fill{ color:var(--green); background:var(--green); }
+  .risk-card.yellow .pct, .risk-card.yellow .bar-fill{ color:var(--yellow); background:var(--yellow); }
+  .risk-card.red .pct, .risk-card.red .bar-fill{ color:var(--red); background:var(--red); }
+  .risk-card .n{ color:var(--ink-soft); }
+
+  .note{ margin-top:16px; font-size:.86rem; color:var(--ink-soft); background:var(--surface); border:1px dashed var(--line); border-radius:10px; padding:12px 16px; }
+
+  footer{ margin-top:60px; padding-top:22px; border-top:1px solid var(--line); font-size:.8rem; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="eyebrow">CreditAI &middot; Đánh giá trên tập Test</div>
+    <h1>Mô hình chấm điểm trên 4.500 khách hàng chưa từng thấy</h1>
+    <p class="subtitle">Tái tạo đúng tập Test chính thức (70/15/15, random_state=42) từ dữ liệu gốc, chạy model đã lưu <code>credit_default_hgb.joblib</code>, huấn luyện lại 3 mô hình baseline để đối chiếu, và kiểm chứng ý nghĩa thực tế của 3 nhóm màu rủi ro.</p>
+    <div class="source-line">Nguồn: <code>official_test_evaluation.py</code> &middot; dữ liệu: <code>UCI_Credit_Card.csv</code> (30.000 khách, Test = 4.500)</div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">0.780</div><div class="label">AUC trên Test (model chính thức)</div></div>
+      <div class="stat"><div class="num">0.430</div><div class="label">KS Statistic</div></div>
+      <div class="stat"><div class="num">60.9%</div><div class="label">Recall — bắt đúng bao nhiêu % khách vỡ nợ</div></div>
+      <div class="stat"><div class="num">0.25</div><div class="label">Ngưỡng quyết định (decision threshold)</div></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="step-head"><span class="step-num">1</span><h2>Mô hình chính thức trên Test</h2></div>
+    <p class="lede"><code>Hist Gradient Boosting Tuned</code> — mô hình đã lưu trong handover, chấm điểm trên 4.500 khách hàng Test với ngưỡng quyết định 0.25 (không phải 0.5 mặc định).</p>
+
+    <div class="panel">
+      <div class="kv-row">
+        <div class="kv"><div class="v">0.7804</div><div class="k">AUC</div></div>
+        <div class="kv"><div class="v">0.4299</div><div class="k">KS</div></div>
+        <div class="kv"><div class="v">0.4864</div><div class="k">Precision</div></div>
+        <div class="kv"><div class="v">0.6094</div><div class="k">Recall</div></div>
+      </div>
+      <div class="kv-row" style="margin-top:18px;">
+        <div class="kv"><div class="v">0.7711</div><div class="k">Accuracy</div></div>
+        <div class="kv"><div class="v">0.5410</div><div class="k">F1-score</div></div>
+        <div class="kv"><div class="v">4.500</div><div class="k">Số khách hàng Test</div></div>
+        <div class="kv"><div class="v">996</div><div class="k">Khách thực tế vỡ nợ (22.1%)</div></div>
+      </div>
+
+      <div class="cm-grid">
+        <div class="cm-cell cm-tn"><div class="big">2.863</div><div class="lab">True Negative</div></div>
+        <div class="cm-cell cm-fp"><div class="big">641</div><div class="lab">False Positive</div></div>
+        <div class="cm-cell cm-fn"><div class="big">389</div><div class="lab">False Negative</div></div>
+        <div class="cm-cell cm-tp"><div class="big">607</div><div class="lab">True Positive</div></div>
+      </div>
+      <p class="note">Trong 996 khách thực sự vỡ nợ, model phát hiện đúng 607 (61%), bỏ sót 389 (39%). Trong 3.504 khách thực sự an toàn, model báo nhầm 641 là rủi ro.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="step-head"><span class="step-num">2</span><h2>So sánh 3 mô hình</h2></div>
+    <p class="lede">Huấn luyện lại đúng hyperparameter baseline từ <code>03_ModelTraining.ipynb</code> trên 28 đặc trưng, đánh giá trên Test ở ngưỡng 0.5 (để so sánh công bằng giữa 3 mô hình, không dùng ngưỡng đã tối ưu riêng của HGB).</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Mô hình</th><th>AUC</th><th>KS</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead>
+        <tbody>
+          <tr class="highlight"><td>Random Forest</td><td>0.7795</td><td>0.4303</td><td>0.6588</td><td>0.3624</td><td>0.4676</td></tr>
+          <tr><td>Hist Gradient Boosting</td><td>0.7778</td><td>0.4302</td><td>0.6594</td><td>0.3635</td><td>0.4686</td></tr>
+          <tr><td>Logistic Regression</td><td>0.7571</td><td>0.4004</td><td>0.6486</td><td>0.2892</td><td>0.4000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Random Forest và HGB gần như ngang nhau trên Test — HGB được chọn làm chính thức vì PR-AUC cao hơn khi tune trên Validation (tiêu chí gốc của <code>03_ModelTraining.ipynb</code>).</p>
+  </section>
+
+  <section>
+    <div class="step-head"><span class="step-num">3</span><h2>Ablation: 19 vs 28 đặc trưng</h2></div>
+    <p class="lede">Cùng một mô hình, chỉ đổi bộ đặc trưng đầu vào — đo mức feature engineering thực sự đóng góp bao nhiêu trên Test.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Mô hình</th><th>Bộ đặc trưng</th><th>AUC</th><th>KS</th><th>Recall</th><th>Δ AUC</th></tr></thead>
+        <tbody>
+          <tr><td>Logistic Regression</td><td>19 gốc</td><td>0.7114</td><td>0.3787</td><td>0.2249</td><td rowspan="2" style="vertical-align:middle; color:var(--accent); font-weight:600;">+0.0457</td></tr>
+          <tr><td>Logistic Regression</td><td>28 (có FE)</td><td>0.7571</td><td>0.4004</td><td>0.2892</td></tr>
+          <tr><td>Random Forest</td><td>19 gốc</td><td>0.7768</td><td>0.4291</td><td>0.3564</td><td rowspan="2" style="vertical-align:middle;">+0.0027</td></tr>
+          <tr><td>Random Forest</td><td>28 (có FE)</td><td>0.7795</td><td>0.4303</td><td>0.3624</td></tr>
+          <tr><td>Hist Gradient Boosting</td><td>19 gốc</td><td>0.7780</td><td>0.4266</td><td>0.3635</td><td rowspan="2" style="vertical-align:middle;">&minus;0.0002</td></tr>
+          <tr><td>Hist Gradient Boosting</td><td>28 (có FE)</td><td>0.7778</td><td>0.4302</td><td>0.3635</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Feature engineering giúp rõ nhất ở mô hình tuyến tính (Logistic Regression, +0.046 AUC) vì nó không tự học được tương tác giữa các biến. Với mô hình cây (Random Forest, HGB), 9 đặc trưng mới chỉ là tổ hợp tuyến tính/tỷ lệ của các biến gốc nên cây đã "tự tìm ra" phần lớn tín hiệu đó — cải thiện gần như không đáng kể.</p>
+  </section>
+
+  <section>
+    <div class="step-head"><span class="step-num">4</span><h2>Đường ROC</h2></div>
+    <p class="lede">So sánh khả năng phân biệt khách vỡ nợ / không vỡ nợ của 4 mô hình trên cùng 4.500 khách Test.</p>
+    <div class="fig">
+      <img src="../evaluation/official_outputs/figures/01_roc_curve_test.png" alt="ROC curve so sánh 4 mô hình trên Test">
+    </div>
+  </section>
+
+  <section>
+    <div class="step-head"><span class="step-num">5</span><h2>Yếu tố ảnh hưởng nhất</h2></div>
+    <p class="lede">Permutation importance của model chính thức trên Test — xáo trộn từng cột, đo AUC giảm bao nhiêu.</p>
+    <div class="fig">
+      <img src="../evaluation/official_outputs/figures/02_feature_importance_test.png" alt="Feature importance">
+    </div>
+    <p class="note"><code>PAY_0</code> (trạng thái trả nợ kỳ gần nhất) áp đảo hoàn toàn mọi đặc trưng khác — đúng như kỳ vọng nghiệp vụ: hành vi trả nợ gần nhất là tín hiệu mạnh nhất để dự đoán vỡ nợ kỳ tới.</p>
+  </section>
+
+  <section>
+    <div class="step-head"><span class="step-num">6</span><h2>Khám phá dữ liệu (EDA)</h2></div>
+    <p class="lede">Trên toàn bộ 30.000 khách hàng gốc, chưa qua remap hay loại bỏ gì.</p>
+    <div class="fig-grid">
+      <div class="fig"><img src="../evaluation/official_outputs/figures/03_eda_default_distribution.png" alt="Phân bố default"><div class="fig-cap">Tỷ lệ vỡ nợ chung: 22.1% — mất cân bằng lớp rõ rệt.</div></div>
+      <div class="fig"><img src="../evaluation/official_outputs/figures/04_eda_default_by_pay0.png" alt="Default theo PAY_0"><div class="fig-cap">Trễ hạn càng nhiều tháng (PAY_0), tỷ lệ vỡ nợ càng tăng mạnh.</div></div>
+      <div class="fig"><img src="../evaluation/official_outputs/figures/05_eda_default_by_age.png" alt="Default theo tuổi"><div class="fig-cap">Tuổi càng cao, rủi ro vỡ nợ tăng nhẹ.</div></div>
+      <div class="fig"><img src="../evaluation/official_outputs/figures/06_eda_default_by_limit.png" alt="Default theo hạn mức"><div class="fig-cap">Hạn mức tín dụng thấp đi kèm rủi ro vỡ nợ cao hơn rõ rệt.</div></div>
+    </div>
+    <div class="fig" style="margin-top:16px;">
+      <img src="../evaluation/official_outputs/figures/07_eda_default_by_categorical.png" alt="Default theo SEX, EDUCATION, MARRIAGE">
+      <div class="fig-cap">Default theo giới tính, học vấn, tình trạng hôn nhân — các biến này bị loại khỏi model, chỉ dùng tham khảo/đánh giá công bằng.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="step-head"><h2>Việc 2 — Kiểm chứng 3 nhóm màu rủi ro</h2></div>
+    <p class="lede">Từ xác suất dự đoán trên Test, gán nhóm theo đúng ngưỡng README (Green &lt;0.15, Yellow 0.15&ndash;0.25, Red &ge;0.25), rồi đối chiếu với tỷ lệ vỡ nợ <strong>thật</strong> trong từng nhóm.</p>
+
+    <div class="risk-row">
+      <div class="risk-card green">
+        <div class="pct">9.17%</div>
+        <div class="n">Green &middot; 2.289 khách &middot; 210 vỡ nợ thật</div>
+        <div class="bar"><div class="bar-fill" style="width:18%"></div></div>
+      </div>
+      <div class="risk-card yellow">
+        <div class="pct">18.59%</div>
+        <div class="n">Yellow &middot; 963 khách &middot; 179 vỡ nợ thật</div>
+        <div class="bar"><div class="bar-fill" style="width:38%"></div></div>
+      </div>
+      <div class="risk-card red">
+        <div class="pct">48.64%</div>
+        <div class="n">Red &middot; 1.248 khách &middot; 607 vỡ nợ thật</div>
+        <div class="bar"><div class="bar-fill" style="width:97%"></div></div>
+      </div>
+    </div>
+
+    <p class="note"><strong>Kết luận:</strong> tỷ lệ vỡ nợ thật tăng đều và rõ rệt qua 3 nhóm (9% &rarr; 19% &rarr; 49%), cao gấp 5 lần từ Green đến Red, và đều lệch rõ so với tỷ lệ default trung bình toàn tập (22.1%). Cách chia màu theo xác suất mô hình phản ánh đúng rủi ro thực tế — không phải phân chia tùy ý.</p>
+  </section>
+
+  <footer>
+    <span>CreditAI &middot; UCI Default of Credit Card Clients</span>
+    <span>File dữ liệu đầy đủ: <code>official_outputs/test_predictions.csv</code></span>
+  </footer>
+
+</div>
+</body>
+</html>

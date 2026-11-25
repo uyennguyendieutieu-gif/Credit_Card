@@ -3,19 +3,23 @@
 # Khong can cai them thu vien ngoai (khong dung Flask) -
 # chi dung http.server co san trong Python.
 #
-# Chay:  python server.py
+# Chay:  python local_demo/server.py  (tu thu muc goc du an)
 # Mo trinh duyet: http://localhost:8765/
 # =========================================================
 
 import json
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pandas as pd
 
+BASE_DIR = Path(__file__).resolve().parent
+ROOT_DIR = BASE_DIR.parent
+sys.path.insert(0, str(ROOT_DIR))  # predict.py nam o thu muc goc
+
 from predict import predict_customer, predict_batch
 
-BASE_DIR = Path(__file__).resolve().parent
 INDEX_FILE = BASE_DIR / "predict_ui.html"
 PORT = 8765
 
